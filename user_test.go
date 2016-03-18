@@ -96,3 +96,13 @@ func TestUnfollowMessageUnfollowsTheUser(t *testing.T) {
 		t.Error("No users should be notified")
 	}
 }
+
+func TestFollowRequestCreatesUsers(t *testing.T) {
+	uc := NewUserCollection()
+
+	uc.UpdateAndGetNotifiees(Message{Type: "F", FromID: "001", ToID: "002", Timestamp: 3})
+
+	if len(uc.Users) != 2 {
+		t.Error("There should have been two users")
+	}
+}
