@@ -14,6 +14,8 @@ type Message struct {
 	Type      string
 	FromID    string
 	ToID      string
+    
+    originalMessage string
 }
 
 const messageDelimiter = "|"
@@ -35,12 +37,12 @@ func Parse(str string) (Message, error) {
 	if err != nil {
 		return Message{}, err
 	}
-	return Message{Timestamp: id, Type: fields[1], FromID: fields[2], ToID: fields[3]}, nil
+	return Message{Timestamp: id, Type: fields[1], FromID: fields[2], ToID: fields[3], originalMessage:str}, nil
 }
 
 // String converts a message to a string
 func (m *Message) String() string {
-	return fmt.Sprintf("%v|%v|%v|%v", m.Timestamp, m.Type, m.FromID, m.ToID)
+	return m.originalMessage
 }
 
 // MessageQueue is a PQ of messages
