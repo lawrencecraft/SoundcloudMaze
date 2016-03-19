@@ -1,12 +1,5 @@
 package main
 
-// type ForwardingAgent struct {
-// 	lastSeenTimestamp int
-// 	pendingMessages   MessageQueue
-// 	users             UserCollection
-// }
-//
-
 import (
 	"log"
 	"net"

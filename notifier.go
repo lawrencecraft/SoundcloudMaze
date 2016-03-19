@@ -20,9 +20,6 @@ func NewTCPNotifier() *TCPConnectionNotifier {
 
 // Notify actually sends notifications
 func (notifier *TCPConnectionNotifier) Notify(id string, msg Message) {
-	// Iterate over a group of channels
-	// If a channel's buffer is full, close it
-	// Otherwise, send (non-blocking)
 	channels, ok := notifier.clients[id]
 	if ok {
 		for index, ch := range channels {
@@ -40,11 +37,13 @@ func (notifier *TCPConnectionNotifier) Notify(id string, msg Message) {
 
 // AddClient creates a new client and channel pair
 func (notifier *TCPConnectionNotifier) AddClient(uc UserClient) {
+	// The buffer is 30. This should be plenty.
 	ch := make(chan string, 30)
 	go processNotifications(uc.Conn, ch)
 	notifier.clients[uc.ID] = append(notifier.clients[uc.ID], ch)
 }
 
+// Pull notifications from its channel until there's a problem with the connection or the channel closes
 func processNotifications(conn net.Conn, notificationChannel <-chan string) {
 	defer conn.Close()
 	for notification := range notificationChannel {

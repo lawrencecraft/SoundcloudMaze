@@ -9,7 +9,7 @@ type User struct {
 }
 
 const (
-	ERRUNKNOWNCOMMAND = "Unknown message type"
+	errUnknownCommand = "Unknown message type"
 )
 
 // Follow another User
@@ -61,7 +61,7 @@ func handleUnfollowMessage(uc *UserCollection, m Message) ([]*User, error) {
 	toUser := uc.GetOrCreateUser(m.ToID)
 
 	fromUser.Unfollow(toUser)
-	return []*User{}, nil
+	return nil, nil
 }
 
 func handleFollowMessage(uc *UserCollection, m Message) ([]*User, error) {
@@ -99,7 +99,7 @@ func (uc *UserCollection) UpdateAndGetNotifiees(m Message) ([]*User, error) {
 	case "S":
 		return handleStatusUpdate(uc, m)
 	default:
-		return nil, errors.New(ERRUNKNOWNCOMMAND)
+		return nil, errors.New(errUnknownCommand)
 	}
 }
 
