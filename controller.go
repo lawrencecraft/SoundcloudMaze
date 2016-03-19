@@ -16,6 +16,7 @@ import (
 // and add new clients
 type Controller interface {
 	HandleEvent(string) error
+	Reset()
 	AddUserClient(UserClient)
 }
 
@@ -30,6 +31,7 @@ type ForwarderController struct {
 	lastDeliveredID int
 }
 
+// NewForwarderController creates a controller with the default
 func NewForwarderController() *ForwarderController {
 	return &ForwarderController{
 		Users:           NewUserCollection(),
@@ -53,6 +55,12 @@ func (fw *ForwarderController) HandleEvent(evt string) error {
 	fw.ProcessMessage(msg)
 
 	return nil
+}
+
+// Reset resets the queue and message id
+func (fw *ForwarderController) Reset() {
+	fw.lastDeliveredID = 0
+	fw.pendingMessages = MessageQueue{}
 }
 
 // AddUserClient creates the user in our data store and passes the ID to the notifier

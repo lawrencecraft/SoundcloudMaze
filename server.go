@@ -24,7 +24,7 @@ func NewSoundcloudServer(eventBinding, userBinding string) *SoundcloudServer {
 
 // ListenAndServe starts listening
 func (scs *SoundcloudServer) ListenAndServe() error {
-	eventListener, err := scs.listenEventHose()
+	newHose, events, err := scs.listenEventHose()
 	if err != nil {
 		return err
 	}
@@ -36,9 +36,11 @@ func (scs *SoundcloudServer) ListenAndServe() error {
 
 	for {
 		select {
+		case <-newHose:
+			scs.Controller.Reset()
 		case conn := <-userConnection:
 			scs.Controller.AddUserClient(conn)
-		case eventString := <-eventListener:
+		case eventString := <-events:
 			err := scs.Controller.HandleEvent(eventString)
 			if err != nil {
 				log.Println(err)
@@ -64,9 +66,11 @@ func (scs *SoundcloudServer) listenUserChannel() (chan UserClient, error) {
 			}
 			go func(c net.Conn) {
 				scanner := bufio.NewScanner(c)
-				scanner.Scan()
-
-				ch <- UserClient{ID: scanner.Text(), Conn: c}
+				if scanner.Scan() {
+					ch <- UserClient{ID: scanner.Text(), Conn: c}
+				} else {
+					log.Println("Potential problem with connection:", scanner.Err())
+				}
 			}(conn)
 		}
 	}()
@@ -74,11 +78,12 @@ func (scs *SoundcloudServer) listenUserChannel() (chan UserClient, error) {
 	return ch, nil
 }
 
-func (scs *SoundcloudServer) listenEventHose() (chan string, error) {
+func (scs *SoundcloudServer) listenEventHose() (chan bool, chan string, error) {
 	ch := make(chan string)
+	newEventHose := make(chan bool)
 	listener, err := net.Listen("tcp", scs.EventHoseBindingAddr)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	go func() {
 		defer listener.Close()
@@ -92,6 +97,8 @@ func (scs *SoundcloudServer) listenEventHose() (chan string, error) {
 				continue
 			}
 
+			newEventHose <- true
+
 			// Read lines out of it until the socket closes.
 			scanner := bufio.NewScanner(c)
 			for scanner.Scan() {
@@ -101,5 +108,5 @@ func (scs *SoundcloudServer) listenEventHose() (chan string, error) {
 			log.Println("Event hose connection failed. Restarting")
 		}
 	}()
-	return ch, nil
+	return newEventHose, ch, nil
 }
