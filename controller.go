@@ -30,8 +30,8 @@ type ForwarderController struct {
 	lastDeliveredID int
 }
 
-func NewForwarderController() ForwarderController {
-	return ForwarderController{
+func NewForwarderController() *ForwarderController {
+	return &ForwarderController{
 		Users:           NewUserCollection(),
 		Notifier:        NewTCPNotifier(),
 		pendingMessages: MessageQueue{},

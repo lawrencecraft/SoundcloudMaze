@@ -13,6 +13,15 @@ type SoundcloudServer struct {
 	Controller            Controller
 }
 
+// NewSoundcloudServer creates a soundcloud server with some defaults
+func NewSoundcloudServer(eventBinding, userBinding string) *SoundcloudServer {
+	return &SoundcloudServer{
+		EventHoseBindingAddr:  eventBinding,
+		UserClientBindingAddr: userBinding,
+		Controller:            NewForwarderController(),
+	}
+}
+
 // ListenAndServe starts listening
 func (scs *SoundcloudServer) ListenAndServe() error {
 	eventListener, err := scs.listenEventHose()
