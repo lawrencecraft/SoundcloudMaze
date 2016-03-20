@@ -1,6 +1,9 @@
 package main
 
-import "net"
+import (
+	"net"
+	"time"
+)
 
 // Notifier stores and notifies client connections about stuff
 type Notifier interface {
@@ -47,6 +50,7 @@ func (notifier *TCPConnectionNotifier) AddClient(uc UserClient) {
 func processNotifications(conn net.Conn, notificationChannel <-chan string) {
 	defer conn.Close()
 	for notification := range notificationChannel {
+		conn.SetWriteDeadline(time.Now().Add(time.Second * 30))
 		_, err := conn.Write([]byte(notification + "\n"))
 		if err != nil {
 			return
